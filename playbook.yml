@@ -1,0 +1,145 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: Create dir
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - '/home/project/prometheus_stack/alertmanager'
+        - '/home/project/prometheus_stack/grafana/dashboards'
+        - '/home/project/prometheus_stack/grafana/datasources'
+        - '/home/project/prometheus_stack/prometheus'
+        - '/home/project/src/conf.d'
+        - '/home/project/src/html'
+
+    - name: Copy /home/project/src/html/index.php
+      copy:
+        src: project/src/html/index.php
+        dest: /home/project/src/html
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy /home/project/src/conf.d/default.conf
+      copy:
+        src: project/src/conf.d/default.conf
+        dest: /home/project/src/conf.d
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy /home/project/prometheus_stack/alertmanager/alertmanager.yml
+      copy:
+        src: project/prometheus_stack/alertmanager/alertmanager.yml
+        dest: /home/project/prometheus_stack/alertmanager
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy /home/project/prometheus_stack/grafana/dashboards/dashboards.yml
+      copy:
+        src: project/prometheus_stack/grafana/dashboards/dashboards.yml
+        dest: /home/project/prometheus_stack/grafana/dashboards
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy /home/project/prometheus_stack/grafana/dashboards/node-exporter-full_rev30.json
+      copy:
+        src: project/prometheus_stack/grafana/dashboards/node-exporter-full_rev30.json
+        dest: /home/project/prometheus_stack/grafana/dashboards
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy /home/project/prometheus_stack/grafana/datasources/prometheus.yml
+      copy:
+        src: project/prometheus_stack/grafana/datasources/prometheus.yml
+        dest: /home/project/prometheus_stack/grafana/datasources
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy /home/project/prometheus_stack/prometheus/prometheus.yml
+      copy:
+        src: project/prometheus_stack/prometheus/prometheus.yml
+        dest: /home/project/prometheus_stack/prometheus
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy /home/project/prometheus_stack/prometheus/alerts.yml
+      copy:
+        src: project/prometheus_stack/prometheus/alerts.yml
+        dest: /home/project/prometheus_stack/prometheus
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+
+    - name: Copy /home/project/docker-compose.yml
+      copy:
+        src: project/docker-compose.yml
+        dest: /home/project
+        remote_src: no
+        mode: 0644
+        owner: root
+        group: root
+
+
+    - name: Install docker packages
+      apt:
+        name: ['apt-transport-https','ca-certificates', 'curl', 'software-properties-common']
+        state: present
+      tags:
+        - docker
+
+    - name: Add Docker s GPG key for ubuntu from official site
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      tags:
+        - docker
+
+    - name: Verify gpg key with the fingerprint
+      apt_key:
+        id: 0EBFCD88
+        state: present
+      tags:
+        - docker
+
+    - name: Configure Docker for ubuntu stable repository
+      apt_repository:
+        repo: deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+      tags:
+        - docker
+
+    - name: Install docker-ce
+      apt:
+        name: docker-ce
+        state: present
+      tags:
+        - docker
+
+    - name: Install docker-compose from official github repo
+      get_url:
+        url : https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x'
+
+    - name:
+      shell: docker-compose -f '/home/project/docker-compose.yml' up -d
+      tags:
+        - docker

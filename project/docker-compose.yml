@@ -1,0 +1,69 @@
+version: '3'
+services:
+  php:
+    image: php:8.0-fpm
+    volumes:
+      - '/home/project/src/html:/var/www/html'
+
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - '/home/project/src/conf.d:/etc/nginx/conf.d'
+      - '/home/project/src/html:/var/www/html'
+    depends_on:
+      - php
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - '/home/project/prometheus_stack/prometheus:/etc/prometheus'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - 9100:9100
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    ports:
+      - 8080:8080
+
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - '/home/project/prometheus_stack/grafana/datasources:/etc/grafana/provisioning/datasources'
+      - '/home/project/prometheus_stack/grafana/dashboards:/etc/grafana/provisioning/dashboards'
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+      GF_DEFAULT_INSTANCE_NAME: "my-grafana"
+      GF_SECURITY_ADMIN_USER: "grafana"
+      GF_SECURITY_ADMIN_PASSWORD: "grafana"
+
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports:
+      - 9093:9093
+    volumes:
+      - '/home/project/prometheus_stack/alertmanager:/etc/alertmanager'
+    environment:
+      TZ: "Europe/Moscow"
+    restart: unless-stopped
