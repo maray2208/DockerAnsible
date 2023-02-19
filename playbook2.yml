@@ -1,11 +1,7 @@
 - hosts: all
   become: yes
   tasks:
-    - name: Check that the /docker-archive-keyring.gpg exists
-      stat:
-        path: /usr/share/keyrings/docker-archive-keyring.gpg
-      register: stat_result
-
-    - name: curl gpg
-      shell: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg'
-      when: not stat_result.stat.exists
+     - name:
+       shell: docker-compose -f '/home/project/docker-compose.yml' down
+       tags:
+         - docker
