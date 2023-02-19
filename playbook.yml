@@ -105,19 +105,26 @@
       tags:
         - docker
 
-    - name: Add Docker s GPG key for ubuntu from official site
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+#    - name: Add Docker s GPG key for ubuntu from official site
+#      apt_key:
+#        url: https://download.docker.com/linux/ubuntu/gpg
+#        state: present
+#      tags:
+#        - docker
+
+#    - name: Verify gpg key with the fingerprint
+#      apt_key:
+#        id: 0EBFCD88
+#        state: present
+#      tags:
+#        - docker
+
+    - name: curl gpg
+      shell: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg'
       tags:
         - docker
 
-    - name: Verify gpg key with the fingerprint
-      apt_key:
-        id: 0EBFCD88
-        state: present
-      tags:
-        - docker
+
 
     - name: Configure Docker for ubuntu stable repository
       apt_repository:
@@ -139,7 +146,13 @@
         dest: /usr/local/bin/docker-compose
         mode: 'u+x,g+x'
 
-    - name:
+    - name: docker start
+      shell: systemctl start docker
+      tags:
+        - docker
+
+
+    - name: docker up
       shell: docker-compose -f '/home/project/docker-compose.yml' up -d
       tags:
         - docker
