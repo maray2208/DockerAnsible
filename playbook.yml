@@ -105,26 +105,14 @@
       tags:
         - docker
 
-#    - name: Add Docker s GPG key for ubuntu from official site
-#      apt_key:
-#        url: https://download.docker.com/linux/ubuntu/gpg
-#        state: present
-#      tags:
-#        - docker
-
-#    - name: Verify gpg key with the fingerprint
-#      apt_key:
-#        id: 0EBFCD88
-#        state: present
-#      tags:
-#        - docker
+    - name: Check that the docker-archive-keyring.gpg exists
+      stat:
+        path: /usr/share/keyrings/docker-archive-keyring.gpg
+      register: stat_result
 
     - name: curl gpg
       shell: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg'
-      tags:
-        - docker
-
-
+      when: not stat_result.stat.exists
 
     - name: Configure Docker for ubuntu stable repository
       apt_repository:
